@@ -10,9 +10,9 @@ Setup: git clone https://github.com/gbatsis/VYSegML.git
 
 Create a virtual python environment and run requirements.txt.
 Feature Extraction was implemented using a very fast numpy-based method https://github.com/tzm030329/GLCM. This is a submodule. Take its files:
-cd VYSegML
-git submodule init
-git submodule update
+* cd VYSegML
+* git submodule init
+* git submodule update
 
 ### Console Application 
 
