@@ -1,0 +1,3 @@
+[submodule "GLCM"]
+	path = GLCM
+	url = https://github.com/tzm030329/GLCM
