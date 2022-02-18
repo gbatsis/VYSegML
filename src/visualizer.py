@@ -137,49 +137,33 @@ class PlotGenerator():
     '''
     def rocCurveCV(self,cvResults,app=False):
 
-        H0tprs = list()
-        H1tprs = list()
-        H0aucs = list()
-        H1aucs = list()
-        H0meanFpr = H1meanFpr = np.linspace(0, 1, 100)
+        tprs = list()
+        aucs = list()
+        meanFpr = np.linspace(0, 1, 100)
 
         for idx in cvResults:
             i='{}'.format(idx)
-            H0tpr = np.array(cvResults[i]['rocCurve']['0']['tpr'])
-            H0fpr = np.array(cvResults[i]['rocCurve']['0']['fpr'])
-            H1tpr = np.array(cvResults[i]['rocCurve']['1']['tpr'])
-            H1fpr = np.array(cvResults[i]['rocCurve']['1']['fpr'])
+            tpr = np.array(cvResults[i]['rocCurve']['tpr'])
+            fpr = np.array(cvResults[i]['rocCurve']['fpr'])
+            auc = cvResults[i]['rocCurve']['auc']
+            aucs.append(auc)
 
-            H0auc = cvResults[i]['rocCurve']['0']['auc']
-            H1auc = cvResults[i]['rocCurve']['1']['auc']
-            H0aucs.append(H0auc)
-            H1aucs.append(H1auc)
+            tprs.append(np.interp(meanFpr,fpr,tpr))
+            tprs[-1][0] = 0.0
+            
+        meanTpr = np.mean(tprs,axis=0)
+        meanTpr[-1]=1
 
-            H0tprs.append(np.interp(H0meanFpr,H0fpr,H0tpr))
-            H0tprs[-1][0] = 0.0
-            H1tprs.append(np.interp(H1meanFpr,H1fpr,H1tpr))
-            H1tprs[-1][0] = 0.0
-
-        H0meanTpr = np.mean(H0tprs,axis=0)
-        H0meanTpr[-1]=1
-        H1meanTpr = np.mean(H1tprs,axis=0)
-        H1meanTpr[-1]=1
-        H0stdTpr = 2*np.std(H0tprs, axis=0)
-        H0upperTpr = np.clip(H0meanTpr+H0stdTpr, 0, 1)
-        H0lowerTpr = H0meanTpr-H0stdTpr
-        H1stdTpr = 2*np.std(H1tprs, axis=0)
-        H1upperTpr = np.clip(H1meanTpr+H1stdTpr, 0, 1)
-        H1lowerTpr = H1meanTpr-H1stdTpr
-
+        stdTpr = 2*np.std(tprs, axis=0)
+        upperTpr = np.clip(meanTpr+stdTpr, 0, 1)
+        lowerTpr = meanTpr-stdTpr
+        
         dataPlot = [
-            go.Scatter(x = H0meanFpr,y = H0upperTpr,line = dict(color='darkblue', width=1),hoverinfo = "skip",showlegend = False,name = 'upper'),
-            go.Scatter(x = H0meanFpr,y = H0lowerTpr,fill = 'tonexty',fillcolor = 'rgba(52, 152, 219, 0.2)',line = dict(color='darkblue', width=1),hoverinfo = "skip",showlegend = False,name = 'lower'),
-            go.Scatter(x = H0meanFpr,y = H0meanTpr,
-                line = dict(color='cornflowerblue', width=3,dash='dash'),hoverinfo = "skip",showlegend = True,name='Background - AUC {:.2f}'.format(np.mean(H0aucs))),
-            go.Scatter(x = H1meanFpr,y = H1upperTpr,line = dict(color='darkred', width=1),hoverinfo = "skip",showlegend = False,name = 'upper'),
-            go.Scatter(x = H1meanFpr,y = H1lowerTpr,fill = 'tonexty',fillcolor = 'rgba(219, 152, 52, 0.2)',line = dict(color='darkred', width=1),hoverinfo = "skip",showlegend = False,name = 'lower'),
-            go.Scatter(x = H1meanFpr,y = H1meanTpr,
-                line = dict(color='indianred', width=3,dash='dash'),hoverinfo = "skip",showlegend = True,name='Vineyard - AUC {:.2f}'.format(np.mean(H1aucs))),
+            go.Scatter(x = meanFpr,y = upperTpr,line = dict(color='darkred', width=1),hoverinfo = "skip",showlegend = False,name = 'upper'),
+            go.Scatter(x = meanFpr,y = lowerTpr,fill = 'tonexty',fillcolor = 'rgba(219, 152, 52, 0.2)',line = dict(color='darkred', width=1),hoverinfo = "skip",showlegend = False,name = 'lower'),
+            go.Scatter(x = meanFpr,y = meanTpr,
+                line = dict(color='indianred', width=3,dash='dash'),hoverinfo = "skip",showlegend = True,name='AUC {:.2f}'.format(np.mean(aucs))),
+
             go.Scatter(x=[0, 1], y=[0, 1], line=dict(color='gray', width=1, dash='dash'), name='baseline')]
 
         fig = go.Figure(dataPlot,layout=go.Layout(xaxis=dict(title="False Positive Rate",),  yaxis=dict(title="True Positive Rate",)))
@@ -204,38 +188,29 @@ class PlotGenerator():
     '''
     def prCurveCV(self,cvResults,app=False):
         meanRecall = np.linspace(0, 1, len(cvResults))
-        H0Press = list()
-        H1Press = list()
+        Press = list()
+        Press = list()
         for idx in cvResults:
             i='{}'.format(idx)
-            H0pres = np.array(cvResults[i]['prCurve']['0']['precision'])
-            H0recall = np.array(cvResults[i]['prCurve']['0']['recall'])
-            H1pres = np.array(cvResults[i]['prCurve']['1']['precision'])
-            H1recall = np.array(cvResults[i]['prCurve']['1']['recall'])
+            pres = np.array(cvResults[i]['prCurve']['precision'])
+            recall = np.array(cvResults[i]['prCurve']['recall'])
             
-            H0Press.append(np.interp(meanRecall, H0pres, H0recall))
-            H1Press.append(np.interp(meanRecall, H1pres, H1recall))
+            Press.append(np.interp(meanRecall, pres, recall))
+            
+        meanPrecision = np.mean(Press, axis=0)
+        
+        stdPrecision = 2*np.std(Press, axis=0)
+        upperPrecision = np.clip(meanPrecision+stdPrecision, 0, 1)
+        lowerPrecision = meanPrecision-stdPrecision
 
-        H0meanPrecision = np.mean(H0Press, axis=0)
-        H1meanPrecision = np.mean(H1Press, axis=0)
 
-        H0stdPrecision = 2*np.std(H0Press, axis=0)
-        Η0upperPrecision = np.clip(H0meanPrecision+H0stdPrecision, 0, 1)
-        Η0lowerPrecision = H0meanPrecision-H0stdPrecision
-
-        H1stdPrecision = 2*np.std(H1Press, axis=0)
-        Η1upperPrecision = np.clip(H1meanPrecision+H1stdPrecision, 0, 1)
-        Η1lowerPrecision = H1meanPrecision-H1stdPrecision
 
         dataPlot = [
-            go.Scatter(x = meanRecall,y = Η0upperPrecision,line = dict(color='darkblue', width=1),hoverinfo = "skip",showlegend = False,name = 'upper'),
-            go.Scatter(x = meanRecall,y = Η0lowerPrecision,fill = 'tonexty',fillcolor = 'rgba(52, 152, 219, 0.2)',line = dict(color='darkblue', width=1),hoverinfo = "skip",showlegend = False,name = 'lower'),
-            go.Scatter(x = meanRecall,y = H0meanPrecision,
-                line = dict(color='cornflowerblue', width=3,dash='dash'),hoverinfo = "skip",showlegend = True,name='Background'),
-            go.Scatter(x = meanRecall,y = Η1upperPrecision,line = dict(color='darkred', width=1),hoverinfo = "skip",showlegend = False,name = 'upper'),
-            go.Scatter(x = meanRecall,y = Η1lowerPrecision,fill = 'tonexty',fillcolor = 'rgba(219, 152, 52, 0.2)',line = dict(color='darkred', width=1),hoverinfo = "skip",showlegend = False,name = 'lower'),
-            go.Scatter(x = meanRecall,y = H1meanPrecision,
-                line = dict(color='indianred', width=3, dash='dash'),hoverinfo = "skip",showlegend = True,name='Vineyard')]
+            go.Scatter(x = meanRecall,y = upperPrecision,line = dict(color='darkblue', width=1),hoverinfo = "skip",showlegend = False,name = 'upper'),
+            go.Scatter(x = meanRecall,y = lowerPrecision,fill = 'tonexty',fillcolor = 'rgba(52, 152, 219, 0.2)',line = dict(color='darkblue', width=1),hoverinfo = "skip",showlegend = False,name = 'lower'),
+            go.Scatter(x = meanRecall,y = meanPrecision,
+                line = dict(color='cornflowerblue', width=3,dash='dash'),hoverinfo = "skip",showlegend = False)]
+            
 
         fig = go.Figure(dataPlot,layout=go.Layout(xaxis=dict(title="Recall"), yaxis=dict(title="Precission")))
                 
@@ -273,18 +248,14 @@ class PlotGenerator():
     '''
     def rocCurve(self,data,app=False):
         
-        colors = ['cornflowerblue', 'indianred']
-
         plotData = list()
 
-        for i in data:
-            className = data[i]['name']
-            fpr = np.array(data[i]['fpr'])
-            tpr = np.array(data[i]['tpr'])
-            thres = np.array(data[i]['threshold'])
-            aucScore = data[i]['auc']
+        fpr = np.array(data['fpr'])
+        tpr = np.array(data['tpr'])
+        thres = np.array(data['threshold'])
+        aucScore = data['auc']
 
-            plotData.append(go.Scatter(x=fpr, y=tpr, line=dict(color=colors[int(i)], width=2, dash='dash'),name=f'{className} - ROC - AUC={aucScore:.2f}'))
+        plotData.append(go.Scatter(x=fpr, y=tpr, line=dict(color='indianred', width=2, dash='dash'),name=f'ROC - AUC={aucScore:.2f}'))
 
         plotData.append(go.Scatter(x=[0, 1], y=[0, 1], line=dict(color='gray', width=1, dash='dash'), name='baseline'))
         fig = go.Figure(data=plotData,layout=go.Layout(xaxis=dict(title="False Positive Rate"), yaxis=dict(title="True Positive Rate")))
@@ -308,17 +279,12 @@ class PlotGenerator():
     '''
     def prCurve(self,data,app=False):
         
-        colors = ['cornflowerblue', 'indianred']
-
         plotData = list()
 
-        for i in data:
-            className = data[i]['name']
-            pre = np.array(data[i]['precision'])
-            rec = np.array(data[i]['recall'])
+        pre = np.array(data['precision'])
+        rec = np.array(data['recall'])
 
-            plotData.append(go.Scatter(x=rec, y=pre, line=dict(color=colors[int(i)], width=2, dash='dash'), 
-                                        name=className))
+        plotData.append(go.Scatter(x=rec, y=pre, line=dict(color='cornflowerblue', width=2, dash='dash')))
 
         fig = go.Figure(data=plotData,layout=go.Layout(xaxis=dict(title="Recall",),  yaxis=dict(title="Precission")))
         fig.update_layout(title_text='Evaluation of Test Dataset: Precision/Recall Curve',font=dict(

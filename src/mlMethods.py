@@ -182,33 +182,28 @@ class MLFramework():
 
             prCurveData = dict()
 
-            for ic, c in enumerate(classNames):
-                pre, rec, thres = metrics.precision_recall_curve(y_val, y_pred_prob[:, classNames.index(c)], pos_label=ic)
-                prCurveData[ic] = {
-                    'name':c,
-                    'precision':pre.tolist(),
-                    'recall':rec.tolist(),
-                    'threshold':thres.tolist()
-                }
+            pre, rec, thres = metrics.precision_recall_curve(y_val, y_pred_prob[:,1])
+            prCurveData = {
+                'precision':pre.tolist(),
+                'recall':rec.tolist(),
+                'threshold':thres.tolist()
+            }
 
             rocCurveData = dict()
 
-            for ic, c in enumerate(classNames):
-                fpr, tpr, thres = metrics.roc_curve(y_val, y_pred_prob[:, classNames.index(c)], pos_label=ic)
+            fpr, tpr, thres = metrics.roc_curve(y_val, y_pred_prob[:,1])
                 
-                if ic==1:
-                    tfpRate = tpr - fpr
-                    ix = np.argmax(tfpRate)
-                    thrs.append(thres[ix])
+            tfpRate = tpr - fpr
+            ix = np.argmax(tfpRate)
+            thrs.append(thres[ix])
 
-                aucScore = metrics.auc(fpr, tpr)
-                rocCurveData[ic] = {
-                    'name':c,
-                    'fpr':fpr.tolist(),
-                    'tpr':tpr.tolist(),
-                    'threshold':thres.tolist(),
-                    'auc':aucScore
-                }
+            aucScore = metrics.auc(fpr, tpr)
+            rocCurveData = {
+                'fpr':fpr.tolist(),
+                'tpr':tpr.tolist(),
+                'threshold':thres.tolist(),
+                'auc':aucScore
+            }
 
             cvResults[idx] = {
                 'classNames' : classNames,
@@ -278,27 +273,24 @@ class MLFramework():
 
         prCurveData = dict()
 
-        for ic, c in enumerate(classNames):
-            pre, rec, thres = metrics.precision_recall_curve(y_test, y_pred_prob[:, classNames.index(c)], pos_label=ic)
-            prCurveData[ic] = {
-                'name':c,
+
+        pre, rec, thres = metrics.precision_recall_curve(y_test, y_pred_prob[:, 1])
+        prCurveData = {
                 'precision':pre.tolist(),
                 'recall':rec.tolist(),
                 'threshold':thres.tolist()
             }
 
         rocCurveData = dict()
-
-        for ic, c in enumerate(classNames):
-            fpr, tpr, thres = metrics.roc_curve(y_test, y_pred_prob[:, classNames.index(c)], pos_label=ic)
-            aucScore = metrics.auc(fpr, tpr)
-            rocCurveData[ic] = {
-                'name':c,
-                'fpr':fpr.tolist(),
-                'tpr':tpr.tolist(),
-                'threshold':thres.tolist(),
-                'auc':aucScore
-            }
+            
+        fpr, tpr, thres = metrics.roc_curve(y_test, y_pred_prob[:, 1])
+        aucScore = metrics.auc(fpr, tpr)
+        rocCurveData = {
+            'fpr':fpr.tolist(),
+            'tpr':tpr.tolist(),
+            'threshold':thres.tolist(),
+            'auc':aucScore
+        }
 
         classificationReport = {
             'classNames' : classNames,

@@ -1,1 +1,1 @@
-{"th": 0.8846512352089586, "features": ["RE", "NIR", "G_mean", "RE_mean", "RE_contrast", "RE_homogeneity", "RE_ASM", "RE_energy", "RE_entropy", "NIR_mean", "NIR_contrast", "NIR_homogeneity", "NIR_ASM", "NIR_energy", "NIR_max", "NIR_entropy"]}
+{"th": 0.6191698927863836, "features": ["G", "RE", "NIR", "G_mean", "RE_mean", "RE_contrast", "RE_ASM", "RE_energy", "RE_entropy", "NIR_mean", "NIR_std", "NIR_contrast", "NIR_homogeneity", "NIR_ASM", "NIR_energy", "NIR_entropy"]}

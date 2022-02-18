@@ -34,7 +34,7 @@ CONTENT_STYLE = {
     'verticalAlign':'middle',
     'textAlign': 'center',
     'position':'absolute',
-    'width':'100%',
+    'width':'120%',
     'height':'350%',
     'top':'0px',
     'padding-left':'25%'
@@ -145,4 +145,4 @@ def generate_graphs(n):
     return predFig
 
 if __name__=='__main__':
-    app.run_server(port= 5001,debug=False)
+    app.run_server(port= 5001,debug=True)
